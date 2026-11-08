@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pussycoin ($PUSSY) — The Green Leak</title>
+  <meta name="description" content="Pussycoin ($PUSSY) on Ethereum. The Nvidia-green meme. Buy on Uniswap, track the chart, copy the contract." />
+  <link rel="icon" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            nv: {
+              green: "#76B900",
+              lime: "#C6F135",
+              mist: "#D7E8C4",
+              ink: "#071006",
+              card: "rgba(8, 14, 7, 0.78)"
+            }
+          },
+          fontFamily: {
+            display: ["Syne", "sans-serif"],
+            sans: ["Manrope", "sans-serif"],
+            mono: ["JetBrains Mono", "ui-monospace", "monospace"]
+          },
+          boxShadow: {
+            glow: "0 0 40px rgba(118, 185, 0, 0.28)",
+            "glow-lg": "0 0 80px rgba(118, 185, 0, 0.35)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root { color-scheme: dark; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Manrope, sans-serif;
+      background: #050805;
+      color: #f4f7ef;
+    }
+    ::selection { background: #76B900; color: #041002; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: #050805; }
+    ::-webkit-scrollbar-thumb { background: #76B900; border-radius: 99px; }
+
+    .bg-stage {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(900px 520px at 80% 8%, rgba(118, 185, 0, 0.22), transparent 60%),
+        radial-gradient(700px 480px at 10% 90%, rgba(118, 185, 0, 0.12), transparent 55%),
+        #050805;
+    }
+    .bg-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.5;
+      filter: saturate(1.15) contrast(1.05);
+    }
+    .bg-veil {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(5, 8, 5, 0.55) 0%, rgba(5, 8, 5, 0.78) 42%, rgba(5, 8, 5, 0.92) 100%),
+        radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.55) 78%);
+    }
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(118, 185, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.05) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+      pointer-events: none;
+    }
+
+    .marquee {
+      display: flex;
+      overflow: hidden;
+      user-select: none;
+      border-block: 1px solid rgba(118, 185, 0, 0.35);
+      background: rgba(118, 185, 0, 0.08);
+    }
+    .marquee-track {
+      display: flex;
+      gap: 2.5rem;
+      min-width: max-content;
+      animation: ticker 32s linear infinite;
+      padding-block: 0.7rem;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .hud {
+      position: relative;
+    }
+    .hud::before,
+    .hud::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #76B900;
+      pointer-events: none;
+    }
+    .hud::before { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+    .hud::after { right: 10px; bottom: 10px; border-left: 0; border-top: 0; }
+
+    .scan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #c6f135, transparent);
+      box-shadow: 0 0 16px #76B900;
+      animation: scan 4.8s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scan {
+      0% { top: 8%; opacity: 0; }
+      12% { opacity: 1; }
+      88% { opacity: 1; }
+      100% { top: 92%; opacity: 0; }
+    }
+
+    .logo-pulse {
+      animation: pulse 3.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { filter: drop-shadow(0 0 12px rgba(118, 185, 0, 0.45)); }
+      50% { filter: drop-shadow(0 0 28px rgba(198, 241, 53, 0.85)); }
+    }
+
+    .step-rail {
+      background: linear-gradient(#76B900, #76B900) center / 2px 100% no-repeat;
+    }
+    @media (min-width: 1024px) {
+      .step-rail {
+        background: linear-gradient(#76B900, #76B900) center 28px / 100% 2px no-repeat;
+      }
+    }
+
+    #toast {
+      transform: translateY(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-track, .scan, .logo-pulse { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <div class="bg-stage" aria-hidden="true">
+    <img src="banner.png" alt="" />
+  </div>
+  <div class="bg-veil" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <div class="sticky top-0 z-50 border-b border-[#76B900]/30 bg-black/70 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.28em] text-nv-green sm:px-6">
+      <span>Sys / Online</span>
+      <span class="hidden sm:inline">Ethereum Mainnet</span>
+      <span>Ticker $PUSSY</span>
+    </div>
+    <header class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <a href="#top" class="flex items-center gap-3">
+        <img src="logo.png" alt="Pussycoin logo" class="h-11 w-11 object-contain logo-pulse" />
+        <span class="font-display text-xl font-extrabold tracking-tight">
+          Pussycoin
+          <span class="ml-1 text-nv-green">$PUSSY</span>
+        </span>
+      </a>
+      <nav class="flex items-center gap-1 text-sm font-semibold text-white/80">
+        <a href="#leak" class="rounded-full px-3 py-2 hover:bg-white/5 hover:text-nv-lime">The Leak</a>
+        <a href="#how-to-buy" class="rounded-full px-3 py-2 hover:bg-white/5 hover:text-nv-lime">How to Buy</a>
+        <a href="#chart" class="rounded-full px-3 py-2 hover:bg-white/5 hover:text-nv-lime">Chart</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="https://t.me/nvidiapussycoin" target="_blank" rel="noopener noreferrer" aria-label="Telegram" class="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-black/40 transition hover:border-nv-green hover:shadow-glow">
+          <img src="tg.png" alt="" class="h-7 w-7 rounded-full" />
+        </a>
+        <a href="https://x.com/nvidiapussycoin" target="_blank" rel="noopener noreferrer" aria-label="X" class="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-white/10 bg-black transition hover:border-nv-green hover:shadow-glow">
+          <img src="x.png" alt="" class="h-6 w-6 object-cover" />
+        </a>
+        <a href="https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=TBA" target="_blank" rel="noopener noreferrer" class="rounded-full bg-nv-green px-4 py-2 text-sm font-extrabold text-black shadow-glow transition hover:bg-nv-lime">
+          Buy Now
+        </a>
+      </div>
+    </header>
+  </div>
+
+  <main id="top">
+    <section class="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:pt-20">
+      <div>
+        <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-nv-green/40 bg-nv-green/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-nv-lime">
+          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-nv-green"></span>
+          Classified meme // Ethereum
+        </p>
+        <h1 class="font-display text-6xl font-extrabold leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+          PUSSY<span class="text-nv-green">COIN</span>
+        </h1>
+        <p class="mt-4 font-mono text-sm uppercase tracking-[0.35em] text-nv-green">Symbol $PUSSY</p>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
+          The board tried to bury the headline. The chain printed it in Nvidia green.
+          $PUSSY is the leak you can actually buy.
+        </p>
+
+        <figure class="hud relative mt-8 max-w-xl overflow-hidden rounded-2xl border border-nv-green/40 bg-black/55 p-5 shadow-glow backdrop-blur-md">
+          <div class="scan" aria-hidden="true"></div>
+          <figcaption class="font-mono text-[10px] uppercase tracking-[0.28em] text-nv-green">Wire // Eyes only</figcaption>
+          <blockquote class="mt-3 font-display text-xl font-bold leading-snug text-white sm:text-2xl">
+            “‘I Was Unfaithful To My Wife’: Jensen Huang Admits Affair As Nvidia Board Launches Chinese Spy Probe.”
+          </blockquote>
+        </figure>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=TBA" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-full bg-nv-green px-6 py-3 text-sm font-extrabold text-black shadow-glow transition hover:-translate-y-0.5 hover:bg-nv-lime">
+            Buy Now
+          </a>
+          <a href="https://dexscreener.com/ethereum/TBA" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-full border border-nv-green/70 bg-black/40 px-6 py-3 text-sm font-extrabold text-nv-lime transition hover:-translate-y-0.5 hover:bg-nv-green hover:text-black">
+            Chart
+          </a>
+        </div>
+
+        <div class="mt-6 flex max-w-xl flex-col gap-3 rounded-2xl border border-white/10 bg-black/50 p-3 backdrop-blur-md sm:flex-row sm:items-center">
+          <div class="min-w-0 flex-1 px-2">
+            <p class="font-mono text-[10px] uppercase tracking-[0.24em] text-nv-green">Contract address</p>
+            <p id="ca-value" class="truncate font-mono text-sm text-white sm:text-base">TBA</p>
+          </div>
+          <button id="copy-ca" type="button" class="rounded-xl bg-white/10 px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-nv-green hover:text-black">
+            Copy CA
+          </button>
+        </div>
+      </div>
+
+      <div class="relative mx-auto w-full max-w-md">
+        <div class="absolute -inset-6 rounded-[2rem] bg-nv-green/20 blur-3xl" aria-hidden="true"></div>
+        <div class="hud relative overflow-hidden rounded-[1.6rem] border border-nv-green/50 bg-black/60 p-4 shadow-glow-lg backdrop-blur-sm">
+          <img src="banner.png" alt="Pussycoin banner" class="aspect-[16/8] w-full rounded-xl object-cover" />
+          <div class="mt-4 flex items-center gap-4">
+            <img src="logo.png" alt="" class="h-20 w-20 object-contain logo-pulse" />
+            <div>
+              <p class="font-display text-2xl font-extrabold">Pussycoin</p>
+              <p class="font-mono text-xs uppercase tracking-[0.22em] text-nv-green">$PUSSY · ETH</p>
+              <p class="mt-1 text-sm text-white/70">Nvidia green. Zero permission.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track font-mono text-xs uppercase tracking-[0.28em] text-nv-lime">
+        <span>$PUSSY</span><span>I was unfaithful to my wife</span><span>Chinese spy probe</span><span>Nvidia green</span><span>Ethereum</span><span>Buy the leak</span><span>Jensen Huang</span><span>Pussycoin</span>
+        <span>$PUSSY</span><span>I was unfaithful to my wife</span><span>Chinese spy probe</span><span>Nvidia green</span><span>Ethereum</span><span>Buy the leak</span><span>Jensen Huang</span><span>Pussycoin</span>
+      </div>
+    </div>
+
+    <section id="leak" class="relative mx-auto max-w-6xl overflow-hidden px-4 py-20 sm:px-6">
+      <p class="pointer-events-none absolute -top-6 left-0 select-none font-display text-[16vw] font-extrabold leading-none text-transparent opacity-70 [-webkit-text-stroke:1px_rgba(118,185,0,0.28)]" aria-hidden="true">PUSSY</p>
+      <div class="relative">
+        <p class="font-mono text-xs uppercase tracking-[0.32em] text-nv-green">01 — The dossier</p>
+        <h2 class="mt-3 max-w-3xl font-display text-4xl font-extrabold leading-tight sm:text-5xl">
+          The admission went public. The probe went live. The ticker went green.
+        </h2>
+        <p class="mt-5 max-w-2xl text-lg text-white/75">
+          “‘I Was Unfaithful To My Wife’: Jensen Huang Admits Affair As Nvidia Board Launches Chinese Spy Probe.”
+          That line is the whole lore. $PUSSY is the meme that showed up when the boardroom lights cut out.
+        </p>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-3">
+          <article class="rounded-2xl border border-nv-green/25 bg-black/55 p-6 backdrop-blur-md transition hover:-translate-y-1 hover:border-nv-green hover:shadow-glow">
+            <p class="font-mono text-xs text-nv-green">01</p>
+            <h3 class="mt-3 font-display text-2xl font-bold">The admission</h3>
+            <p class="mt-3 text-sm leading-relaxed text-white/70">
+              One sentence. No filter. “I was unfaithful to my wife.” The quote left the building before the lawyers did, and $PUSSY kept the receipt.
+            </p>
+          </article>
+          <article class="rounded-2xl border border-nv-green/25 bg-black/55 p-6 backdrop-blur-md transition hover:-translate-y-1 hover:border-nv-green hover:shadow-glow">
+            <p class="font-mono text-xs text-nv-green">02</p>
+            <h3 class="mt-3 font-display text-2xl font-bold">The spy probe</h3>
+            <p class="mt-3 text-sm leading-relaxed text-white/70">
+              Nvidia’s board opens a Chinese spy probe while the headline is still warm. Suits investigate. Degens deploy. The green eye stays open.
+            </p>
+          </article>
+          <article class="rounded-2xl border border-nv-green/25 bg-black/55 p-6 backdrop-blur-md transition hover:-translate-y-1 hover:border-nv-green hover:shadow-glow">
+            <p class="font-mono text-xs text-nv-green">03</p>
+            <h3 class="mt-3 font-display text-2xl font-bold">The ticker</h3>
+            <p class="mt-3 text-sm leading-relaxed text-white/70">
+              Name Pussycoin. Symbol $PUSSY. Chain Ethereum. Painted in the same neon the keynote stage made famous — then pointed at Uniswap.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-to-buy" class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-16">
+      <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.32em] text-nv-green">02 — Ethereum</p>
+          <h2 class="mt-3 font-display text-4xl font-extrabold sm:text-5xl">How to Buy</h2>
+          <p class="mt-3 max-w-xl text-white/70">Four moves. Wallet, ETH, Uniswap, confirm. That’s the whole path into $PUSSY.</p>
+        </div>
+        <a href="https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=TBA" target="_blank" rel="noopener noreferrer" class="rounded-full bg-nv-green px-5 py-3 text-sm font-extrabold text-black shadow-glow hover:bg-nv-lime">
+          Buy Now
+        </a>
+      </div>
+
+      <ol class="step-rail grid gap-4 lg:grid-cols-4">
+        <li class="rounded-2xl border border-white/10 bg-black/60 p-5 backdrop-blur-md">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-nv-green font-display text-xl font-extrabold text-black">1</div>
+          <h3 class="mt-5 font-display text-xl font-bold">Create a wallet</h3>
+          <p class="mt-2 text-sm leading-relaxed text-white/70">
+            Install MetaMask, Rabby, or another Ethereum wallet. Write the recovery phrase on paper and keep it offline. That phrase is the wallet.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-white/10 bg-black/60 p-5 backdrop-blur-md">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-nv-green font-display text-xl font-extrabold text-black">2</div>
+          <h3 class="mt-5 font-display text-xl font-bold">Load ETH</h3>
+          <p class="mt-2 text-sm leading-relaxed text-white/70">
+            Buy Ethereum and send it to your wallet on Ethereum mainnet. Leave a little extra ETH in the wallet so you can pay gas.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-white/10 bg-black/60 p-5 backdrop-blur-md">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-nv-green font-display text-xl font-extrabold text-black">3</div>
+          <h3 class="mt-5 font-display text-xl font-bold">Swap on Uniswap</h3>
+          <p class="mt-2 text-sm leading-relaxed text-white/70">
+            Hit Buy Now, connect the wallet, and swap ETH for $PUSSY. If the token field is empty, paste the contract address before you swap.
+          </p>
+        </li>
+        <li class="rounded-2xl border border-white/10 bg-black/60 p-5 backdrop-blur-md">
+          <div class="grid h-12 w-12 place-items-center rounded-xl bg-nv-green font-display text-xl font-extrabold text-black">4</div>
+          <h3 class="mt-5 font-display text-xl font-bold">Confirm the trade</h3>
+          <p class="mt-2 text-sm leading-relaxed text-white/70">
+            Check the amount, approve the transaction in your wallet, and add $PUSSY so the balance shows. Then open the chart and watch the pair.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="chart" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.32em] text-nv-green">03 — Live tape</p>
+          <h2 class="mt-3 font-display text-4xl font-extrabold sm:text-5xl">Chart</h2>
+          <p class="mt-3 text-white/70">Dexscreener embed for the Ethereum pair. Pair address is TBA until the pool is live.</p>
+        </div>
+        <a href="https://dexscreener.com/ethereum/TBA" target="_blank" rel="noopener noreferrer" class="rounded-full border border-nv-green px-5 py-3 text-sm font-extrabold text-nv-lime hover:bg-nv-green hover:text-black">
+          Chart
+        </a>
+      </div>
+
+      <div class="overflow-hidden rounded-3xl border border-nv-green/40 bg-black/70 shadow-glow">
+        <div class="flex items-center justify-between border-b border-nv-green/20 px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-nv-green"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-nv-green/50"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-nv-green/25"></span>
+            <span class="ml-3 font-mono text-[11px] uppercase tracking-[0.2em] text-white/70">dexscreener // ethereum / $PUSSY</span>
+          </div>
+          <span class="font-mono text-[11px] text-nv-green">TBA</span>
+        </div>
+        <iframe
+          title="Dexscreener chart for Pussycoin"
+          src="https://dexscreener.com/ethereum/TBA?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15"
+          class="h-[640px] w-full bg-black"
+          loading="lazy"
+          allow="clipboard-write"
+        ></iframe>
+      </div>
+
+      <div class="mt-4 flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-white/10 bg-black/50 p-4 sm:flex-row sm:items-center">
+        <p class="font-mono text-sm text-white/80">
+          CA <span class="text-nv-green" id="ca-value-2">TBA</span>
+        </p>
+        <button id="copy-ca-2" type="button" class="rounded-xl bg-nv-green px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-black hover:bg-nv-lime">
+          Copy CA
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-nv-green/30 bg-black/70">
+    <div class="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-3">
+        <img src="logo.png" alt="" class="h-12 w-12 object-contain" />
+        <div>
+          <p class="font-display text-xl font-extrabold">Pussycoin <span class="text-nv-green">$PUSSY</span></p>
+          <p class="text-sm text-white/60">A meme on Ethereum. Nvidia green, nothing else.</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="https://t.me/nvidiapussycoin" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-sm hover:border-nv-green">
+          <img src="tg.png" alt="" class="h-5 w-5 rounded-full" /> Telegram
+        </a>
+        <a href="https://x.com/nvidiapussycoin" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-sm hover:border-nv-green">
+          <img src="x.png" alt="" class="h-5 w-5 object-cover" /> X
+        </a>
+        <a href="https://app.uniswap.org/#/swap?inputCurrency=eth&outputCurrency=TBA" target="_blank" rel="noopener noreferrer" class="rounded-full bg-nv-green px-4 py-2 text-sm font-extrabold text-black">Buy Now</a>
+        <a href="https://dexscreener.com/ethereum/TBA" target="_blank" rel="noopener noreferrer" class="rounded-full border border-nv-green px-4 py-2 text-sm font-extrabold text-nv-lime">Chart</a>
+      </div>
+    </div>
+    <p class="border-t border-white/5 px-4 py-4 text-center font-mono text-[11px] text-white/40">
+      $PUSSY is a meme coin. The headline is the joke. Nothing here is a promise of profit.
+    </p>
+  </footer>
+
+  <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-nv-green px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-black shadow-glow">
+    Contract copied
+  </div>
+
+  <script>
+    const CA = "TBA";
+
+    async function copyCA(button) {
+      const label = button.textContent;
+      try {
+        await navigator.clipboard.writeText(CA);
+      } catch (err) {
+        const area = document.createElement("textarea");
+        area.value = CA;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.left = "-9999px";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      button.textContent = "Copied";
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      window.setTimeout(() => {
+        button.textContent = label;
+        toast.classList.remove("show");
+      }, 1600);
+    }
+
+    document.getElementById("copy-ca").addEventListener("click", (event) => copyCA(event.currentTarget));
+    document.getElementById("copy-ca-2").addEventListener("click", (event) => copyCA(event.currentTarget));
+  </script>
+</body>
+</html>
